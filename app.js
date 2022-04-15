@@ -17,17 +17,18 @@ app.use((req, res, next) => {
   next();
 });
 
-// app.use((req, res, next) => {
-//   req.user = { // вставьте сюда _id созданного в предыдущем пункте пользователя
-//     _id: '62586a743a024449d70a1ecd',
-//   };
+app.use((req, res, next) => {
+  req.user = { // это _id созданного пользователя 'Тестовый пользователь'
+    _id: '62586a743a024449d70a1ecd',
+  };
 
-//   next();
-// });
+  next();
+});
 
 app.use(express.json());
 // app.use(routes);
 app.use(user);
+app.use(card);
 
 async function main() {
   try {
