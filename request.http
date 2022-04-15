@@ -1,1 +1,15 @@
 GET http://localhost:3000/
+
+###
+GET http://localhost:3000/users
+
+###
+GET http://localhost:3000/users/62591d4c839c04440ae7b953
+
+###
+
+GET http://localhost:3000/cards
+
+###
+
+PUT http://localhost:3000/cards/6259553142e8d3775758a210/likes
