@@ -30,6 +30,7 @@ app.use(express.json());
 app.use(user);
 app.use(card);
 
+// функция обработки ошибок при подключении ксерверу mongo
 async function main() {
   try {
     await mongoose.connect('mongodb://localhost:27017/mestodb');
@@ -51,4 +52,5 @@ app.post('/', (req, res) => {
   res.send(req.body);
 });
 
+// запуск сервера
 main();
