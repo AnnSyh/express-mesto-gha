@@ -24,7 +24,7 @@ module.exports.postUsers = (req, res) => {
 };
 
 // PATCH /users/me — обновляет профиль
-module.exports.patchUser = (req, res) => {
+module.exports.updateUserProfile = (req, res) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
