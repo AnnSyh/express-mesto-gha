@@ -6,15 +6,11 @@
 */
 
 const User = require('../models/user');
-
-// eslint-disable-next-line no-unused-vars
-class ValidationError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = 'ValidationError';
-    this.statusCode = 400;
-  }
-}
+// const Error400 = require('../errors/Error400');
+const Error400 = require('../errors/Error400');
+// const Error404 = require('../errors/Error404');
+const Error409 = require('../errors/Error409');
+const Error500 = require('../errors/Error500');
 
 // GET /users/:userId - возвращает пользователя по _id
 module.exports.getUserById = (req, res) => {
@@ -39,7 +35,7 @@ module.exports.getUsers = (req, res) => {
 };
 
 // POST /users — создаёт пользователя
-module.exports.postUsers = (req, res) => {
+module.exports.postUsers = (req, res, next) => {
   const { name, about, avatar } = req.body;
 
   User.create({ name, about, avatar })
@@ -48,9 +44,12 @@ module.exports.postUsers = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send(err.message);
+        next(new Error400('Переданы некорректные данные при создании пользователя'));
+      } else if (err.name === 'MongoError' && err.code === 11000) {
+        next(new Error409('Данный пользователь уже зарегистрирован'));
+      } else {
+        next(new Error500('1111 На сервере произошла ошибка'));
       }
-      return res.status(500).send({ message: '1111 На сервере произошла ошибка' });
     });
 };
 
