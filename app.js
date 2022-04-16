@@ -3,7 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const user = require('./routes/user');
 const card = require('./routes/card');
-const { status } = require('express/lib/response');
+// const { status } = require('express/lib/response');
 
 const { PORT = 3000 } = process.env; // Слушаем 3000 порт
 const app = express();

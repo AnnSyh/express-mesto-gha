@@ -7,6 +7,7 @@
 
 const User = require('../models/user');
 
+// eslint-disable-next-line no-unused-vars
 class ValidationError extends Error {
   constructor(message) {
     super(message);
