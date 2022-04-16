@@ -6,31 +6,37 @@
 */
 
 const User = require('../models/user');
-// const Error400 = require('../errors/Error400');
 const Error400 = require('../errors/Error400');
-// const Error404 = require('../errors/Error404');
-const Error409 = require('../errors/Error409');
+const Error404 = require('../errors/Error404');
 const Error500 = require('../errors/Error500');
 
 // GET /users/:userId - возвращает пользователя по _id
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId)
     .then((user) => {
-      res.status(200).send({ data: user });
+      if (user) {
+        res.status(200).send({ data: user });
+      } else {
+        next(new Error400('Ошибка. Пользователь не найден, попробуйте еще раз'));
+      }
     })
-    .catch(() => {
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new Error400('Ошибка. Введен некорректный id пользователя'));
+      } else {
+        next(new Error500('На сервере произошла ошибка'));
+      }
     });
 };
 
 // GET /users — возвращает всех пользователей
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((user) => {
       res.status(200).send({ data: user });
     })
     .catch(() => {
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
+      next(new Error500('На сервере произошла ошибка'));
     });
 };
 
@@ -45,40 +51,48 @@ module.exports.postUsers = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new Error400('Переданы некорректные данные при создании пользователя'));
-      } else if (err.name === 'MongoError' && err.code === 11000) {
-        next(new Error409('Данный пользователь уже зарегистрирован'));
       } else {
-        next(new Error500('1111 На сервере произошла ошибка'));
+        next(new Error500('На сервере произошла ошибка'));
       }
     });
 };
 
 // PATCH /users/me — обновляет профиль
-module.exports.updateUserProfile = (req, res) => {
+module.exports.updateUserProfile = (req, res, next) => {
   const { name, about } = req.body;
+  const userID = req.user._id;
 
-  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
+  User.findByIdAndUpdate(userID, { name, about }, { new: true })
     .then((user) => {
-      if (!user) { return res.status(404).send({ message: 'Пользователь с указанным _id не найден' }); }
+      if (!user) {
+        next(new Error404('Пользователь с указанным _id не найден'));
+      }
       return res.status(200).send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') { return res.status(400).send({ message: 'Переданы некорректные данные при редактировании пользователя.' }); }
-      return res.status(500).send({ message: 'Произошла ошибка' });
+      if (err.name === 'ValidationError') {
+        next(new Error400('Переданы некорректные данные при редактировании пользователя'));
+      }
+      next(new Error500('На сервере произошла ошибка'));
     });
 };
 
 // PATCH /users/me/avatar — обновляет аватар профиля
-module.exports.patchMeAvatar = (req, res) => {
+module.exports.patchMeAvatar = (req, res, next) => {
   const { name, avatar } = req.body;
+  const userID = req.user._id;
 
-  User.findByIdAndUpdate(req.user._id, { name, avatar }, { new: true })
+  User.findByIdAndUpdate(userID, { name, avatar }, { new: true })
     .then((user) => {
-      if (!user) { return res.status(404).send({ message: 'Пользователь с указанным _id не найден' }); }
+      if (!user) {
+        next(new Error404('Пользователь с указанным _id не найден'));
+      }
       return res.status(200).send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') { return res.status(400).send({ message: 'Переданы некорректные данные при редактировании пользователя.' }); }
-      return res.status(500).send({ message: 'Произошла ошибка' });
+      if (err.name === 'ValidationError') {
+        next(new Error400('Переданы некорректные данные при редактировании пользователя'));
+      }
+      next(new Error500('На сервере произошла ошибка'));
     });
 };
