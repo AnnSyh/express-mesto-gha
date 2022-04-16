@@ -23,12 +23,14 @@ app.use((req, res, next) => {
   next();
 });
 
+// подключаемроуты и всё остальное...
 app.use(express.json());
+// прописываем маршруты
 // app.use(routes);
 app.use(user);
 app.use(card);
 
-// функция обработки ошибок при подключении ксерверу mongo
+// функция обработки ошибок при подключении к серверу mongo
 async function main() {
   try {
     await mongoose.connect('mongodb://localhost:27017/mestodb');
