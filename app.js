@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const user = require('./routes/user');
 const card = require('./routes/card');
+const { status } = require('express/lib/response');
 
 const { PORT = 3000 } = process.env; // Слушаем 3000 порт
 const app = express();
@@ -14,21 +15,12 @@ const app = express();
 app.use((req, res, next) => {
   next();
 });
-
 app.use((req, res, next) => {
   req.user = { // это _id созданного пользователя 'Тестовый пользователь'
     _id: '62586a743a024449d70a1ecd',
   };
-
   next();
 });
-
-// подключаемроуты и всё остальное...
-app.use(express.json());
-// прописываем маршруты
-// app.use(routes);
-app.use(user);
-app.use(card);
 
 // функция обработки ошибок при подключении к серверу mongo
 async function main() {
@@ -43,18 +35,28 @@ async function main() {
   });
 }
 
-// запросы
+// подключаем роуты и всё остальное...
+app.use(express.json());
+// app.use(routes);
+app.use(user);
+app.use(card);
+
+// роутинг
 app.get('/', (req, res) => {
-  res.send('Hello word!!!!');
+  res
+    .send('Hello word!!!!');
 });
-
 app.post('/', (req, res) => {
-  res.send(req.body);
+  res
+    .send(req.body);
 });
 
+// обработка ошибок
 // Обработаем некорректный маршрут и вернём ошибку 404
 app.use('*', (req, res) => {
-  res.status(404).send({ message: `Страницы по адресу ${req.baseUrl} не существует` });
+  res
+    .status(404)
+    .send({ message: `Страницы по адресу ${req.baseUrl} не существует` });
 });
 
 // запуск сервера
