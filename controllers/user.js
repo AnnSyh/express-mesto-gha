@@ -1,10 +1,15 @@
+// const { sendStatus } = require('express/lib/response');
 const User = require('../models/user');
 
 // GET /users/:userId - возвращает пользователя по _id
 module.exports.getUserById = (req, res) => {
   User.findById(req.params.userId)
-    .then((user) => res.send({ data: user }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .then((user) => {
+      res.send({ data: user });
+    })
+    .catch((err) => {
+      res.status(500).send({ message: err.message });
+    });
 };
 
 // GET /users — возвращает всех пользователей

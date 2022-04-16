@@ -52,5 +52,10 @@ app.post('/', (req, res) => {
   res.send(req.body);
 });
 
+// Обработаем некорректный маршрут и вернём ошибку 404
+app.use('*', (req, res) => {
+  res.status(404).send({ message: `Страницы по адресу ${req.baseUrl} не существует` });
+});
+
 // запуск сервера
 main();
