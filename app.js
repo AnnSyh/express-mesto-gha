@@ -3,7 +3,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const user = require('./routes/user');
 const card = require('./routes/card');
-// const { status } = require('express/lib/response');
+const {
+  ERROR_CODE_NOT_FOUND,
+} = require('./constants');
 
 const { PORT = 3000 } = process.env; // Слушаем 3000 порт
 const app = express();
@@ -38,8 +40,14 @@ app.use(express.json());
 app.use(user);
 app.use(card);
 
+// роутинг
+// app.get('/', (req, res) => {
+//   res
+//     .send('Hello word!!!!');
+// });
+
 // обработка ошибок
-// Обработаем некорректный маршрут и вернём ошибку ERROR_CODE_NOT_FOUND
+// Обработаем некорректный маршрут и вернём ошибку 404
 app.use('*', (req, res) => {
   res
     .status(ERROR_CODE_NOT_FOUND)

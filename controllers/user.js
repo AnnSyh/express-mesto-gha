@@ -18,16 +18,16 @@ module.exports.getUserById = (req, res) => {
 
   User.findById(id)
     .orFail(() => {
-      const error = new Error('Пользователь по заданному id отсутствует в базе');
-      error.statusCode = ERROR_CODE_NOT_FOUND;
-      throw error;
+      throw new Error('NotFound');
     })
-    .then((user) => res.status(200).send({ data: user }))
+    .then((user) => {
+      res.status(200).send({ data: user });
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'не валидный id пользователя' });
       } else if (err.message === 'NotFound') {
-        res.status(ERROR_CODE_NOT_FOUND).send({ message: err.message });
+        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден.' });
       } else {
         res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
       }
