@@ -12,24 +12,20 @@ const {
   ERROR_CODE_INTERNAL,
 } = require('../constants');
 
-// GET /users/:userId - возвращает пользователя по _id
 module.exports.getUserById = (req, res) => {
-  const { id } = req.params;
-
-  User.findById(id)
-    .orFail(() => {
-      throw new Error('NotFound');
-    })
+  User.findById(req.params.userId)
     .then((user) => {
-      res.status(200).send({ data: user });
+      if (user) {
+        res.status(200).send({ data: user });
+      } else {
+        res.status(ERROR_CODE_BAD_REQUEST).send({ data: 'Ошибка. Пользователь не найден, попробуйте еще раз' });
+      }
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'не валидный id пользователя' });
-      } else if (err.message === 'NotFound') {
-        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден.' });
+        res.status(ERROR_CODE_BAD_REQUEST).send({ data: 'Ошибка. Введен некорректный id пользователя' });
       } else {
-        res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
+        res.status(ERROR_CODE_INTERNAL).send({ data: 'На сервере произошла ошибка' });
       }
     });
 };

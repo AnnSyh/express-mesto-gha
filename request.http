@@ -10,7 +10,7 @@ POST  http://localhost:3000/users
 
 ###
 // GET /users/:userId - возвращает пользователя по _id
-GET http://localhost:3000/users/62591d4c839c04440ae7b953
+GET http://localhost:3000/users/62586a743a024449d70a1ecd
 
 ###
 // GET /cards — возвращает все карточки
