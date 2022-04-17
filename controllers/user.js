@@ -12,6 +12,7 @@ const {
   ERROR_CODE_INTERNAL,
 } = require('../constants');
 
+// GET /users/:userId - возвращает пользователя по _id
 module.exports.getUserById = (req, res) => {
   User.findById(req.params.userId)
     .then((user) => {
@@ -63,9 +64,8 @@ module.exports.postUsers = (req, res) => {
 // PATCH /users/me — обновляет профиль
 module.exports.updateUserProfile = (req, res) => {
   const { name, about } = req.body;
-  const userID = req.user._id;
 
-  User.findByIdAndUpdate(userID, { name, about }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
         res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
@@ -84,10 +84,9 @@ module.exports.updateUserProfile = (req, res) => {
 
 // PATCH /users/me/avatar — обновляет аватар профиля
 module.exports.patchMeAvatar = (req, res) => {
-  const { name, avatar } = req.body;
-  const userID = req.user._id;
+  const { avatar } = req.body;
 
-  User.findByIdAndUpdate(userID, { name, avatar }, { new: true, runValidators: true })
+  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
         res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
@@ -96,7 +95,7 @@ module.exports.patchMeAvatar = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные при редактировании пользователя' });
+        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные при редактировании аватара пользователя' });
       } else if (err.name === 'CastError') {
         res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден.' });
       }

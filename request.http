@@ -13,9 +13,16 @@ POST  http://localhost:3000/users
 GET http://localhost:3000/users/62586a743a024449d70a1ecd
 
 ###
+// GET /users/:userId - возвращает пользователя по не правильному _id
+GET http://localhost:3000/users/62586a743a024449d
+
+###
 // GET /cards — возвращает все карточки
 GET http://localhost:3000/cards
 
 ###
 // PUT /cards/:cardId/likes — поставить лайк карточке
 PUT http://localhost:3000/cards/62595c74ec9875d7f8b9139d/likes
+
+###
+PATCH http://localhost:3000/users/me/avatar
