@@ -6,23 +6,25 @@
 */
 
 const Сard = require('../models/card');
-const Error400 = require('../errors/Error400');
-const Error404 = require('../errors/Error404');
-const Error500 = require('../errors/Error500');
+const {
+  ERROR_CODE_BAD_REQUEST,
+  ERROR_CODE_NOT_FOUND,
+  ERROR_CODE_INTERNAL,
+} = require('../constants');
 
 // GET /cards — возвращает все карточки
-module.exports.getCards = (req, res, next) => {
+module.exports.getCards = (req, res) => {
   Сard.find({})
     .then((cards) => {
       res.status(200).send({ data: cards });
     })
     .catch(() => {
-      next(new Error500('На сервере произошла ошибка'));
+      res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
 // POST /cards — создаёт карточку
-module.exports.createCard = (req, res, next) => {
+module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
   const owner = req.user._id;
 
@@ -33,27 +35,27 @@ module.exports.createCard = (req, res, next) => {
     }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new Error400('Переданы некорректные данные при создании карточки'));
+        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные при создании карточки' });
       } else {
-        next(new Error500('На сервере произошла ошибка'));
+        res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
       }
     });
 };
 
 // DELETE /cards/:cardId — удаляет карточку по идентификатору
-module.exports.deleteCard = (req, res, next) => {
+module.exports.deleteCard = (req, res) => {
   Сard.findByIdAndRemove(req.params.cardId)
     .then((cards) => res.send({ data: cards }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new Error404('Ошибка. Карта не найдена'));
+        res.status(ERROR_CODE_BAD_REQUEST).send({ message: err.message });
       }
-      return next(new Error500('На сервере произошла ошибка'));
+      return res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
 // PUT /cards/:cardId/likes — поставить лайк карточке
-module.exports.likeCard = (req, res, next) => {
+module.exports.likeCard = (req, res) => {
   Сard.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
@@ -64,15 +66,15 @@ module.exports.likeCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new Error400('Ошибка. В формате ID карточки'));
+        res.status(ERROR_CODE_BAD_REQUEST).send({ message: err.message });
       } else {
-        next(new Error500('На сервере произошла ошибка'));
+        res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
       }
     });
 };
 
 // DELETE /cards/:cardId/likes — убрать лайк с карточки
-module.exports.dislikeCard = (req, res, next) => {
+module.exports.dislikeCard = (req, res) => {
   Сard.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } }, // убрать _id из массива
@@ -83,9 +85,9 @@ module.exports.dislikeCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new Error400('Ошибка. В формате ID карточки'));
+        res.status(ERROR_CODE_NOT_FOUND).send({ message: err.message });
       } else {
-        next(new Error500('На сервере произошла ошибка'));
+        res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
       }
     });
 };

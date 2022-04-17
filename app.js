@@ -8,20 +8,6 @@ const card = require('./routes/card');
 const { PORT = 3000 } = process.env; // Слушаем 3000 порт
 const app = express();
 
-// подключаемся к серверу mongo
-// mongoose.connect('mongodb://localhost:27017/mestodb');
-
-// миделвеа
-app.use((req, res, next) => {
-  next();
-});
-app.use((req, res, next) => {
-  req.user = { // это _id созданного пользователя 'Тестовый пользователь'
-    _id: '62586a743a024449d70a1ecd',
-  };
-  next();
-});
-
 // функция обработки ошибок при подключении к серверу mongo
 async function main() {
   try {
@@ -35,27 +21,28 @@ async function main() {
   });
 }
 
+// подключаемся к серверу mongo
+// mongoose.connect('mongodb://localhost:27017/mestodb');
+
+// миддлвара
+app.use((req, res, next) => {
+  req.user = { // это _id созданного пользователя 'Тестовый пользователь'
+    _id: '62586a743a024449d70a1ecd',
+  };
+  next();
+});
+
 // подключаем роуты и всё остальное...
 app.use(express.json());
 // app.use(routes);
 app.use(user);
 app.use(card);
 
-// роутинг
-app.get('/', (req, res) => {
-  res
-    .send('Hello word!!!!');
-});
-app.post('/', (req, res) => {
-  res
-    .send(req.body);
-});
-
 // обработка ошибок
-// Обработаем некорректный маршрут и вернём ошибку 404
+// Обработаем некорректный маршрут и вернём ошибку ERROR_CODE_NOT_FOUND
 app.use('*', (req, res) => {
   res
-    .status(404)
+    .status(ERROR_CODE_NOT_FOUND)
     .send({ message: `Страницы по адресу ${req.baseUrl} не существует` });
 });
 

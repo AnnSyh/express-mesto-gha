@@ -6,42 +6,47 @@
 */
 
 const User = require('../models/user');
-const Error400 = require('../errors/Error400');
-const Error404 = require('../errors/Error404');
-const Error500 = require('../errors/Error500');
+const {
+  ERROR_CODE_BAD_REQUEST,
+  ERROR_CODE_NOT_FOUND,
+  ERROR_CODE_INTERNAL,
+} = require('../constants');
 
 // GET /users/:userId - возвращает пользователя по _id
-module.exports.getUserById = (req, res, next) => {
-  User.findById(req.params.userId)
-    .then((user) => {
-      if (user) {
-        res.status(200).send({ data: user });
-      } else {
-        next(new Error400('Ошибка. Пользователь не найден, попробуйте еще раз'));
-      }
+module.exports.getUserById = (req, res) => {
+  const { id } = req.params;
+
+  User.findById(id)
+    .orFail(() => {
+      const error = new Error('Пользователь по заданному id отсутствует в базе');
+      error.statusCode = ERROR_CODE_NOT_FOUND;
+      throw error;
     })
+    .then((user) => res.status(200).send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new Error400('Ошибка. Введен некорректный id пользователя'));
+        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'не валидный id пользователя' });
+      } else if (err.message === 'NotFound') {
+        res.status(ERROR_CODE_NOT_FOUND).send({ message: err.message });
       } else {
-        next(new Error500('На сервере произошла ошибка'));
+        res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
       }
     });
 };
 
 // GET /users — возвращает всех пользователей
-module.exports.getUsers = (req, res, next) => {
+module.exports.getUsers = (req, res) => {
   User.find({})
     .then((user) => {
       res.status(200).send({ data: user });
     })
     .catch(() => {
-      next(new Error500('На сервере произошла ошибка'));
+      res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
 // POST /users — создаёт пользователя
-module.exports.postUsers = (req, res, next) => {
+module.exports.postUsers = (req, res) => {
   const { name, about, avatar } = req.body;
 
   User.create({ name, about, avatar })
@@ -50,49 +55,55 @@ module.exports.postUsers = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new Error400('Переданы некорректные данные при создании пользователя'));
+        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные при создании пользователя' });
+      } else if (err.statusCode === ERROR_CODE_NOT_FOUND) {
+        res.status(ERROR_CODE_NOT_FOUND).send({ message: err.message });
       } else {
-        next(new Error500('На сервере произошла ошибка'));
+        res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
       }
     });
 };
 
 // PATCH /users/me — обновляет профиль
-module.exports.updateUserProfile = (req, res, next) => {
+module.exports.updateUserProfile = (req, res) => {
   const { name, about } = req.body;
   const userID = req.user._id;
 
-  User.findByIdAndUpdate(userID, { name, about }, { new: true })
+  User.findByIdAndUpdate(userID, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        next(new Error404('Пользователь с указанным _id не найден'));
+        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
       }
       return res.status(200).send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new Error400('Переданы некорректные данные при редактировании пользователя'));
+        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные при редактировании пользователя' });
+      } else if (err.name === 'CastError') {
+        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден.' });
       }
-      next(new Error500('На сервере произошла ошибка'));
+      res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
 // PATCH /users/me/avatar — обновляет аватар профиля
-module.exports.patchMeAvatar = (req, res, next) => {
+module.exports.patchMeAvatar = (req, res) => {
   const { name, avatar } = req.body;
   const userID = req.user._id;
 
-  User.findByIdAndUpdate(userID, { name, avatar }, { new: true })
+  User.findByIdAndUpdate(userID, { name, avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        next(new Error404('Пользователь с указанным _id не найден'));
+        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
       }
       return res.status(200).send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new Error400('Переданы некорректные данные при редактировании пользователя'));
+        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные при редактировании пользователя' });
+      } else if (err.name === 'CastError') {
+        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден.' });
       }
-      next(new Error500('На сервере произошла ошибка'));
+      res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
     });
 };
