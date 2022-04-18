@@ -74,7 +74,7 @@ module.exports.updateUserProfile = (req, res) => {
       if (err.name === 'ValidationError') {
         res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные при редактировании пользователя' });
       } else if (err.name === 'CastError') {
-        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден.' });
+        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Пользователь по указанному _id не найден.' });
       }
       res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
     });
@@ -95,7 +95,7 @@ module.exports.patchMeAvatar = (req, res) => {
       if (err.name === 'ValidationError') {
         res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные при редактировании пользователя' });
       } else if (err.name === 'CastError') {
-        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден.' });
+        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Пользователь по указанному _id не найден.' });
       }
       res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
     });
