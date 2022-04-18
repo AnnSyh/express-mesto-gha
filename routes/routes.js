@@ -5,7 +5,6 @@ const { ERROR_CODE_NOT_FOUND } = require('../constants');
 
 const app = express();
 
-app.use(express.json());
 app.use(userRouter);
 app.use(cardRouter);
 

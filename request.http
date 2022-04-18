@@ -11,6 +11,12 @@ POST  http://localhost:3000/users
 ###
 // GET /users/:userId - возвращает пользователя по _id
 GET http://localhost:3000/users/62586a743a024449d70a1ecd
+###
+// GET /users/:userId - возвращает пользователя по не корректному  _id
+GET http://localhost:3000/users/52586a743a024449d70a1ecd
+###
+// GET /users/:userId - возвращает пользователя по не сущест  _id
+GET http://localhost:3000/users/62586a743a024449d70a1e
 
 ###
 // GET /users/:userId - возвращает пользователя по не правильному _id

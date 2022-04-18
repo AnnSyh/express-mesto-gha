@@ -27,12 +27,10 @@ module.exports.getCards = (req, res) => {
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body;
   const owner = req.user._id;
-
   Сard.create({ name, link, owner })
-    .then((card) => res.status(200).send({
-      name: card.name,
-      link: card.link,
-    }))
+    .then((card) => {
+      res.send({ card });
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные при создании карточки' });
@@ -45,7 +43,14 @@ module.exports.createCard = (req, res) => {
 // DELETE /cards/:cardId — удаляет карточку по идентификатору
 module.exports.deleteCard = (req, res) => {
   Сard.findByIdAndRemove(req.params.cardId)
-    .then((cards) => res.send({ data: cards }))
+    .then((cards) => {
+      if (!cards) {
+        // отправить ошибку 404
+        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Карточка с указанным _id не найдена.' });
+      } else {
+        res.send({ data: cards });
+      }
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(ERROR_CODE_BAD_REQUEST).send({ message: err.message });
@@ -62,6 +67,10 @@ module.exports.likeCard = (req, res) => {
     { new: true },
   )
     .then((cards) => {
+      if (!cards) {
+        // отправить ошибку 404
+        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Передан несуществующий _id карточки.' });
+      }
       res.status(200).send({ data: cards });
     })
     .catch((err) => {
@@ -81,6 +90,10 @@ module.exports.dislikeCard = (req, res) => {
     { new: true },
   )
     .then((cards) => {
+      if (!cards) {
+        // отправить ошибку 404
+        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Передан несуществующий _id карточки.' });
+      }
       res.status(200).send({ data: cards });
     })
     .catch((err) => {

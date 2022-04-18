@@ -19,7 +19,7 @@ module.exports.getUserById = (req, res) => {
       if (user) {
         res.status(200).send({ data: user });
       } else {
-        res.status(ERROR_CODE_BAD_REQUEST).send({ data: 'Ошибка. Пользователь не найден, попробуйте еще раз' });
+        res.status(ERROR_CODE_NOT_FOUND).send({ data: 'Ошибка. Пользователь не найден, попробуйте еще раз' });
       }
     })
     .catch((err) => {
@@ -53,8 +53,6 @@ module.exports.postUsers = (req, res) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные при создании пользователя' });
-      } else if (err.statusCode === ERROR_CODE_NOT_FOUND) {
-        res.status(ERROR_CODE_NOT_FOUND).send({ message: err.message });
       } else {
         res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
       }
@@ -95,7 +93,7 @@ module.exports.patchMeAvatar = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные при редактировании аватара пользователя' });
+        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные при редактировании пользователя' });
       } else if (err.name === 'CastError') {
         res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь по указанному _id не найден.' });
       }
