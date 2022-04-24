@@ -2,6 +2,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const BodyParser = require('body-parser');
+const { celebrate, Joi, errors } = require('celebrate');
+const auth = require('./middlewares/auth');
+const cenralErrors = require('./middlewares/central-err');
 
 const app = express();
 const routes = require('./routes/routes');
@@ -30,10 +33,17 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(auth);
+
 // подключаем роуты и всё остальное...
 app.use(express.json());
 
 app.use(routes);
+
+// централизованнаяобработка ошибок
+app.use(errors());
+
+app.use(cenralErrors);
 
 // запуск сервера
 main();

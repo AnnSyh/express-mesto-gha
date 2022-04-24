@@ -1,18 +1,19 @@
 /* login (/POST)  авторизация(залогинивание) пользователя по email и password
-   GET /users/:userId - возвращает пользователя по _id
-   GET /users — возвращает всех пользователей
-   POST /users — создаёт пользователя по обязательным полям email и password
-   PATCH /users/me — обновляет профиль
-   PATCH /users/me/avatar — обновляет аватар профиля
+   GET    /users/:userId - возвращает пользователя по _id
+   GET    /users — возвращает всех пользователей
+   POST   /users — создаёт пользователя по обязательным полям email и password
+   GET    /users/me — возвращает информацию о текущем пользователе
+   PATCH  /users/me — обновляет профиль
+   PATCH  /users/me/avatar — обновляет аватар профиля
 */
 
 const bcrypt = require('bcryptjs'); // импортируем bcrypt
 const jwt = require('jsonwebtoken'); // импортируем jwt
 
 const User = require('../models/user');
-const {
-  SEKRET_KEY,
-} = require('../constants');
+const { SEKRET_KEY } = require('../constants');
+
+const SALT_ROUNDS = 10;
 
 const BadAuthError = require('../errors/bad-auth-err');
 const BadRequestError = require('../errors/bad-request-err');
@@ -45,10 +46,9 @@ module.exports.getUserById = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequestError('Ошибка. Введен некорректный id пользователя'));
-      } else {
-        next(err);
+        return next(new BadRequestError('Ошибка. Введен некорректный id пользователя'));
       }
+      return next(err);
     });
 };
 
@@ -60,7 +60,7 @@ module.exports.getUsers = (req, res, next) => {
 };
 // ----------------------
 // POST /signup — создаёт пользователя по обязательным полям email и password
-module.exports.postUsers = (req, res, next) => {
+module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -69,7 +69,7 @@ module.exports.postUsers = (req, res, next) => {
     return res.status(BadRequestError).send({ message: 'Поля email и password обязательны' });
   }
   // хешируем пароль
-  return bcrypt.hash(req.body.password, 10)
+  return bcrypt.hash(req.body.password, SALT_ROUNDS)
     .then((hash) => User.create({
       name, about, avatar, email: req.body.email, password: hash,
     }))
@@ -80,12 +80,30 @@ module.exports.postUsers = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
-      } else if (err.code === 11000) {
-        next(new ExistEmailError('Передан уже зарегистрированный email.'));
-      } else {
-        next(err);
+        return next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
       }
+      if (err.code === 11000) {
+        return next(new ExistEmailError('Передан уже зарегистрированный email.'));
+      }
+      return next(err);
+    });
+};
+
+// GET /users/me — возвращает информацию о текущем пользователе
+module.exports.getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .then((user) => {
+      if (!user) {
+        next(new NotFoundError('Пользователь по указанному _id не найден.'));
+      } else {
+        res.send({ user });
+      }
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return next(new NotFoundError('Передан некорректный _id пользователя.'));
+      }
+      return next(err);
     });
 };
 
@@ -102,12 +120,12 @@ module.exports.updateUserProfile = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные при обновлении пользователя'));
-      } else if (err.name === 'CastError') {
-        next(new NotFoundError('Пользователь по указанному _id не найден.'));
-      } else {
-        next(err);
+        return next(new BadRequestError('Переданы некорректные данные при обновлении пользователя'));
       }
+      if (err.name === 'CastError') {
+        return next(new NotFoundError('Пользователь по указанному _id не найден.'));
+      }
+      return next(err);
     });
 };
 
@@ -124,11 +142,11 @@ module.exports.patchMeAvatar = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные при обновлении пользователя'));
-      } else if (err.name === 'CastError') {
-        next(new NotFoundError('Пользователь по указанному _id не найден.'));
-      } else {
-        next(err);
+        return next(new BadRequestError('Переданы некорректные данные при обновлении пользователя'));
       }
+      if (err.name === 'CastError') {
+        return next(new NotFoundError('Пользователь по указанному _id не найден.'));
+      }
+      return next(err);
     });
 };

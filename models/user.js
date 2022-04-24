@@ -11,14 +11,14 @@ const {
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    minlength: [2, '1111 Мин длина 2 символа'],
-    maxlength: [30, '1111 Мах длина 30 символа'],
+    minlength: [2, 'Мин длина 2 символа'],
+    maxlength: [30, 'Мах длина 30 символа'],
     default: 'Жак-Ив Кусто',
   },
   about: {
     type: String,
-    minlength: [2, '2222 Мин длина 2 символа'],
-    maxlength: [30, '2222 Мах длина 30 символа'],
+    minlength: [2, 'Мин длина 2 символа'],
+    maxlength: [30, 'Мах длина 30 символа'],
     default: 'Исследователь',
   },
   avatar: {
