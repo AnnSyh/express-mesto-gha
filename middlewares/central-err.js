@@ -9,5 +9,5 @@ module.exports = (err, req, res, next) => {
         ? 'Ошибка по умолчанию.'
         : message,
     });
-  next();
+  return next();
 };

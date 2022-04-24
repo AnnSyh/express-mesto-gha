@@ -43,7 +43,7 @@ module.exports.deleteCard = (req, res, next) => {
       } else if (!cards.owner.equals(req.user._id)) {
         throw new DelCardError('Попытка удалить чужую карточку.');
       } else {
-        res.send({ data: cards });
+        return cards.remove().then(() => res.status(200).send(cards));
       }
     })
     .catch((err) => {

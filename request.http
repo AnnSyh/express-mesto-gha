@@ -28,7 +28,7 @@ GET http://localhost:3000/cards
 
 ###
 // PUT /cards/:cardId/likes — поставить лайк карточке
-PUT http://localhost:3000/cards/62595c74ec9875d7f8b9139d/likes
+PUT http://localhost:3000/cards/62595c7bec9875d7f8b9139f/likes
 
 ###
 PATCH http://localhost:3000/users/me/avatar
