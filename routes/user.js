@@ -10,7 +10,6 @@ const {
 
 router.get('/users', getUsers);
 router.get('/users/:userId', getUserById);
-// router.post('/users', postUsers);
 router.post('/signup', postUsers);
 router.post('/signin', login);
 

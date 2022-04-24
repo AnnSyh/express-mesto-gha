@@ -1,6 +1,7 @@
-/* GET /users/:userId - возвращает пользователя по _id
+/* login (/POST)  авторизация(залогинивание) пользователя по email и password
+   GET /users/:userId - возвращает пользователя по _id
    GET /users — возвращает всех пользователей
-   POST /users — создаёт пользователя
+   POST /users — создаёт пользователя по обязательным полям email и password
    PATCH /users/me — обновляет профиль
    PATCH /users/me/avatar — обновляет аватар профиля
 */
@@ -11,13 +12,16 @@ const jwt = require('jsonwebtoken'); // импортируем jwt
 const User = require('../models/user');
 const {
   SEKRET_KEY,
-  ERROR_CODE_BAD_REQUEST,
-  ERROR_CODE_NOT_FOUND,
-  ERROR_CODE_INTERNAL,
-  ERROR_CODE_BAD_AUTH,
 } = require('../constants');
 
-//  login (/POST)  авторизация(залогиниывание) пользователя по email и password
+const BadAuthError = require('../errors/bad-auth-err');
+const BadRequestError = require('../errors/bad-request-err');
+const NotFoundError = require('../errors/not-found-err');
+const ServerError = require('../errors/server-err');
+const ExistEmailError = require('../errors/exist-email-err');
+const RangeError = require('../errors/range-err');
+
+//  login (/POST)  авторизация(залогинивание) пользователя по email и password
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
@@ -27,50 +31,45 @@ module.exports.login = (req, res, next) => {
       res.send({ token });
     })
     .catch(() => {
-      next(new ERROR_CODE_BAD_AUTH('Неправильные почта или пароль.'));
+      next(new BadAuthError('Неправильные почта или пароль.'));
     });
 };
 
 // GET /users/:userId - возвращает пользователя по _id
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId)
     .then((user) => {
       if (user) {
         res.status(200).send({ data: user });
       } else {
-        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Ошибка. Пользователь не найден, попробуйте еще раз' });
+        throw new NotFoundError('Ошибка. Пользователь не найден, попробуйте еще раз');
       }
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Ошибка. Введен некорректный id пользователя' });
+        next(new BadRequestError('Ошибка. Введен некорректный id пользователя'));
       } else {
-        res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
+        next(err);
       }
     });
 };
 
 // GET /users — возвращает всех пользователей
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
-    .then((user) => {
-      res.status(200).send({ data: user });
-    })
-    .catch(() => {
-      res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
-    });
+    .then((user) => res.send({ data: user }))
+    .catch(next);
 };
-
-// POST /users — создаёт пользователя
-module.exports.postUsers = (req, res) => {
+// ----------------------
+// POST /signup — создаёт пользователя по обязательным полям email и password
+module.exports.postUsers = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
 
   if (!email || !password) {
-    return res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Поля email и password обязательны' });
+    return res.status(BadRequestError).send({ message: 'Поля email и password обязательны' });
   }
-
   // хешируем пароль
   return bcrypt.hash(req.body.password, 10)
     .then((hash) => User.create({
@@ -79,53 +78,55 @@ module.exports.postUsers = (req, res) => {
     .then((user) => res.send({ user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные при создании пользователя' });
+        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
       } else if (err.code === 11000) {
-        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Передан уже зарегистрированный email.' });
+        next(new BadRequestError('Передан уже зарегистрированный email.'));
       } else {
-        res.status(ERROR_CODE_INTERNAL).send({ message: ` ${err.message} На сервере произошла ошибка` });
+        next(err);
       }
     });
 };
 
 // PATCH /users/me — обновляет профиль
-module.exports.updateUserProfile = (req, res) => {
+module.exports.updateUserProfile = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
+        next(new NotFoundError('Пользователь по указанному _id не найден.'));
       }
-      return res.status(200).send({ data: user });
+      return res.send({ user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные при редактировании пользователя' });
+        next(new BadRequestError('Переданы некорректные данные при обновлении пользователя'));
       } else if (err.name === 'CastError') {
-        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Пользователь по указанному _id не найден.' });
+        next(new NotFoundError('Пользователь по указанному _id не найден.'));
+      } else {
+        next(err);
       }
-      res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
 // PATCH /users/me/avatar — обновляет аватар профиля
-module.exports.patchMeAvatar = (req, res) => {
+module.exports.patchMeAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        res.status(ERROR_CODE_NOT_FOUND).send({ message: 'Пользователь по указанному id не найден' });
+        next(new NotFoundError('Пользователь по указанному _id не найден.'));
       }
-      return res.status(200).send({ data: user });
+      return res.send({ user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Переданы некорректные данные при редактировании пользователя' });
+        next(new BadRequestError('Переданы некорректные данные при обновлении пользователя'));
       } else if (err.name === 'CastError') {
-        res.status(ERROR_CODE_BAD_REQUEST).send({ message: 'Пользователь по указанному _id не найден.' });
+        next(new NotFoundError('Пользователь по указанному _id не найден.'));
+      } else {
+        next(err);
       }
-      res.status(ERROR_CODE_INTERNAL).send({ message: 'На сервере произошла ошибка' });
     });
 };
