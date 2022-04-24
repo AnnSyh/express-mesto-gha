@@ -98,7 +98,7 @@ module.exports.getCurrentUser = (req, res, next) => {
       if (!user) {
         next(new NotFoundError('/me Пользователь по указанному _id не найден.'));
       } else {
-        res.send({ user });
+        res.status(200).send(user);
       }
     })
     .catch((err) => {

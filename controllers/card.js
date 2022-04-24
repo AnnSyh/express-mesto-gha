@@ -21,8 +21,8 @@ module.exports.getCards = (req, res, next) => {
 // POST /cards — создаёт карточку
 module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
-  const owner = req.user._id;
-  Сard.create({ name, link, owner })
+
+  Сard.create({ name, link, owner: req.user._id })
     .then((card) => {
       res.send(card);
     })
