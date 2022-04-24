@@ -9,7 +9,6 @@
 
 const bcrypt = require('bcryptjs'); // импортируем bcrypt
 const jwt = require('jsonwebtoken'); // импортируем jwt
-
 const User = require('../models/user');
 const { SEKRET_KEY } = require('../constants');
 
@@ -37,25 +36,28 @@ module.exports.login = (req, res, next) => {
 // GET /users/:userId - возвращает пользователя по _id
 module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId)
+    .orFail(() => {
+      next(new NotFoundError('_id Ошибка. Пользователь не найден, попробуйте еще раз'));
+    })
     .then((user) => {
       if (user) {
         res.send({ user });
       } else {
-        throw new NotFoundError('Ошибка. Пользователь не найден, попробуйте еще раз');
+        throw new NotFoundError('_id Ошибка. Пользователь не найден, попробуйте еще раз');
       }
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return next(new BadRequestError('Ошибка. Введен некорректный id пользователя'));
+        return next(new BadRequestError('_id Ошибка. Введен некорректный id пользователя'));
       }
       return next(err);
     });
 };
 
-// GET /users — возвращает всех пользователей
+// + GET /users — возвращает всех пользователей
 module.exports.getUsers = (req, res, next) => {
   User.find({})
-    .then((user) => res.send({ data: user }))
+    .then((result) => res.send(result))
     .catch(next);
 };
 // ----------------------
@@ -94,14 +96,14 @@ module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .then((user) => {
       if (!user) {
-        next(new NotFoundError('Пользователь по указанному _id не найден.'));
+        next(new NotFoundError('/me Пользователь по указанному _id не найден.'));
       } else {
         res.send({ user });
       }
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return next(new NotFoundError('Передан некорректный _id пользователя.'));
+        return next(new NotFoundError('/me Передан некорректный _id пользователя.'));
       }
       return next(err);
     });
@@ -116,7 +118,7 @@ module.exports.updateUserProfile = (req, res, next) => {
       if (!user) {
         next(new NotFoundError('Пользователь по указанному _id не найден.'));
       }
-      return res.send({ user });
+      return res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
