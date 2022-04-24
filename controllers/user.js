@@ -17,9 +17,7 @@ const {
 const BadAuthError = require('../errors/bad-auth-err');
 const BadRequestError = require('../errors/bad-request-err');
 const NotFoundError = require('../errors/not-found-err');
-const ServerError = require('../errors/server-err');
 const ExistEmailError = require('../errors/exist-email-err');
-const RangeError = require('../errors/range-err');
 
 //  login (/POST)  авторизация(залогинивание) пользователя по email и password
 module.exports.login = (req, res, next) => {
@@ -40,7 +38,7 @@ module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId)
     .then((user) => {
       if (user) {
-        res.status(200).send({ data: user });
+        res.send({ user });
       } else {
         throw new NotFoundError('Ошибка. Пользователь не найден, попробуйте еще раз');
       }
@@ -75,12 +73,16 @@ module.exports.postUsers = (req, res, next) => {
     .then((hash) => User.create({
       name, about, avatar, email: req.body.email, password: hash,
     }))
-    .then((user) => res.send({ user }))
+    .then((user) => {
+      res.status(200).send({
+        name: user.name, about: user.about, avatar: user.avatar, _id: user._id, email: user.email,
+      });
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
       } else if (err.code === 11000) {
-        next(new BadRequestError('Передан уже зарегистрированный email.'));
+        next(new ExistEmailError('Передан уже зарегистрированный email.'));
       } else {
         next(err);
       }
