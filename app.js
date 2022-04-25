@@ -3,7 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const BodyParser = require('body-parser');
 const { errors } = require('celebrate');
-const auth = require('./middlewares/auth');
+// const auth = require('./middlewares/auth'); // авторизация
 const cenralErrors = require('./middlewares/central-err');
 
 const app = express();
@@ -25,17 +25,14 @@ async function main() {
 
 // миддлвары
 app.use(BodyParser.json()); // подключили миддлвару кот достает значения из тела запроса
-
-app.use(auth);
+// app.use(auth); // авторизация
 
 // подключаем роуты и всё остальное...
 app.use(express.json());
-
 app.use(routes);
 
 // централизованная обработка ошибок
 app.use(errors());
-
 app.use(cenralErrors);
 
 // запуск сервера

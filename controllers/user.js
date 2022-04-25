@@ -48,7 +48,7 @@ module.exports.getUserById = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return next(new BadRequestError('_id Ошибка. Введен некорректный id пользователя'));
+        return next(new BadRequestError(`_id Ошибка. ${req.params} Введен некорректный id пользователя`));
       }
       return next(err);
     });
@@ -98,6 +98,7 @@ module.exports.getCurrentUser = (req, res, next) => {
       if (!user) {
         return next(new NotFoundError('GET /users/me Пользователь по указанному _id не найден.'));
       }
+      console.log('req.user = ', req.user);
       return res.status(200).send(user);
     })
     .catch((err) => {
