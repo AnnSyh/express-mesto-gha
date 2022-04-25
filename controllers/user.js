@@ -35,8 +35,6 @@ module.exports.login = (req, res, next) => {
 
 // GET /users/:userId - возвращает пользователя по _id
 module.exports.getUserById = (req, res, next) => {
-  console.log('getUserById req.params = ', req.params);
-  console.log('getUserById req.user = ', req.user);
   User.findById(req.params.userId)
     .orFail(() => {
       next(new NotFoundError('_id Ошибка. Пользователь не найден, попробуйте еще раз'));
@@ -95,8 +93,6 @@ module.exports.createUser = (req, res, next) => {
 
 // GET /users/me — возвращает информацию о текущем пользователе
 module.exports.getCurrentUser = (req, res, next) => {
-  console.log('getCurrentUser req.params = ', req.params);
-  console.log('getCurrentUser req.user = ', req.user);
   User.findById(req.user._id)
     .then((user) => {
       if (!user) {
