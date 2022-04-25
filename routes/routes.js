@@ -1,5 +1,5 @@
 const express = require('express');
-const router = require('express').Router();
+// const router = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
 const validator = require('validator');
 const userRouter = require('./user');
@@ -16,7 +16,7 @@ const app = express();
 
 // роуты, не требующие авторизации
 //  регистрация
-router.post('/signup', celebrate({
+app.post('/signup', celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
@@ -36,7 +36,7 @@ router.post('/signup', celebrate({
   }),
 }), createUser);
 //  авторизация (логин)
-router.post('/signin', celebrate({
+app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().custom((value, helpers) => {
       if (validator.isEmail(value)) {
