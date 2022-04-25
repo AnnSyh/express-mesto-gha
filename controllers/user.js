@@ -35,15 +35,17 @@ module.exports.login = (req, res, next) => {
 
 // GET /users/:userId - возвращает пользователя по _id
 module.exports.getUserById = (req, res, next) => {
+  console.log('getUserById req.params = ', req.params);
+  console.log('getUserById req.user = ', req.user);
   User.findById(req.params.userId)
     .orFail(() => {
       next(new NotFoundError('_id Ошибка. Пользователь не найден, попробуйте еще раз'));
     })
     .then((user) => {
       if (user) {
-        res.send({ user });
+        res.send(user);
       } else {
-        throw new NotFoundError('_id Ошибка. Пользователь не найден, попробуйте еще раз');
+        throw (new NotFoundError('_id Ошибка. Пользователь не найден, попробуйте еще раз'));
       }
     })
     .catch((err) => {
@@ -93,17 +95,18 @@ module.exports.createUser = (req, res, next) => {
 
 // GET /users/me — возвращает информацию о текущем пользователе
 module.exports.getCurrentUser = (req, res, next) => {
+  console.log('getCurrentUser req.params = ', req.params);
+  console.log('getCurrentUser req.user = ', req.user);
   User.findById(req.user._id)
     .then((user) => {
       if (!user) {
-        next(new NotFoundError('/me Пользователь по указанному _id не найден.'));
-      } else {
-        res.status(200).send(user);
+        return next(new NotFoundError('GET /users/me Пользователь по указанному _id не найден.'));
       }
+      return res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return next(new NotFoundError('/me Передан некорректный _id пользователя.'));
+        return next(new NotFoundError('GET /users/me Передан некорректный _id пользователя.'));
       }
       return next(err);
     });
@@ -116,7 +119,7 @@ module.exports.updateUserProfile = (req, res, next) => {
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        next(new NotFoundError('Пользователь по указанному _id не найден.'));
+        return next(new NotFoundError('Пользователь по указанному _id не найден.'));
       }
       return res.send({ data: user });
     })
@@ -138,7 +141,7 @@ module.exports.patchMeAvatar = (req, res, next) => {
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        next(new NotFoundError('Пользователь по указанному _id не найден.'));
+        return next(new NotFoundError('Пользователь по указанному _id не найден.'));
       }
       return res.send({ user });
     })
