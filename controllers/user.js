@@ -98,15 +98,9 @@ module.exports.getCurrentUser = (req, res, next) => {
       if (!user) {
         return next(new NotFoundError('GET /users/me Пользователь по указанному _id не найден.'));
       }
-      console.log('req.user = ', req.user);
       return res.status(200).send(user);
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return next(new NotFoundError('GET /users/me Передан некорректный _id пользователя.'));
-      }
-      return next(err);
-    });
+    .catch((err) => next(err));
 };
 
 // PATCH /users/me — обновляет профиль
@@ -123,9 +117,6 @@ module.exports.updateUserProfile = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return next(new BadRequestError('Переданы некорректные данные при обновлении пользователя'));
-      }
-      if (err.name === 'CastError') {
-        return next(new NotFoundError('Пользователь по указанному _id не найден.'));
       }
       return next(err);
     });
@@ -145,9 +136,6 @@ module.exports.patchMeAvatar = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return next(new BadRequestError('Переданы некорректные данные при обновлении пользователя'));
-      }
-      if (err.name === 'CastError') {
-        return next(new NotFoundError('Пользователь по указанному _id не найден.'));
       }
       return next(err);
     });
