@@ -4,7 +4,7 @@ const { celebrate, Joi } = require('celebrate');
 const validator = require('validator');
 const userRouter = require('./user');
 const cardRouter = require('./card');
-const { ERROR_CODE_NOT_FOUND } = require('../constants');
+const NotFoundError = require('../errors/not-found-err');
 const {
   createUser,
   login,
@@ -56,10 +56,11 @@ app.use(userRouter);
 app.use(cardRouter);
 
 // Обработаем некорректный маршрут и вернём ошибку 404
-app.use('*', (req, res) => {
-  res
-    .status(ERROR_CODE_NOT_FOUND)
-    .send({ message: `Страницы по адресу ${req.baseUrl} не существует` });
-});
+// app.use('*', (req, res) => {
+//   res
+//     .status(ERROR_CODE_NOT_FOUND)
+//     .send({ message: `Страницы по адресу ${req.baseUrl} не существует` });
+// });
+app.use('*', auth, (req, res, next) => next(new NotFoundError(`Страницы по адресу ${req.baseUrl} не существует`)));
 
 module.exports = app;
