@@ -20,7 +20,7 @@ module.exports = (req, res, next) => {
     // попытаемся верифицировать токен
     payload = jwt.verify(token, SEKRET_KEY);
   } catch (err) {
-    return next(err);
+    return next(new BadAuthError('Необходима авторизация.'));
   }
 
   req.user = payload; // записываем пейлоуд в объект запроса
